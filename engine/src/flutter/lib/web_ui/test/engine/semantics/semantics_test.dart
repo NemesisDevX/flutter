@@ -6836,6 +6836,36 @@ void _testLocale() {
     expect(object.element.getAttribute('lang'), 'es-MX');
   });
 
+  test('nodes with multi-subtag locales use a BCP 47 language tag', () {
+    semantics()
+      ..debugOverrideTimestampFunction(() => _testTime)
+      ..semanticsEnabled = true;
+
+    final tester = SemanticsTester(owner());
+    tester.updateNode(
+      id: 0,
+      locale: const ui.Locale('es', 'US'),
+      rect: const ui.Rect.fromLTRB(0, 0, 100, 50),
+      children: <SemanticsNodeUpdate>[
+        tester.updateNode(
+          id: 1,
+          locale: const ui.Locale.fromSubtags(
+            languageCode: 'zh',
+            scriptCode: 'Hant',
+            countryCode: 'TW',
+          ),
+          rect: const ui.Rect.fromLTRB(0, 0, 100, 50),
+        ),
+      ],
+    );
+    tester.apply();
+
+    expect(tester.getSemanticsObject(0).element.getAttribute('lang'), 'es-US');
+    expect(tester.getSemanticsObject(1).element.getAttribute('lang'), 'zh-Hant-TW');
+
+    semantics().semanticsEnabled = false;
+  });
+
   test('nodes with same locale as parent does not set lang', () {
     semantics()
       ..debugOverrideTimestampFunction(() => _testTime)
